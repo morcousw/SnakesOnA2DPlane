@@ -8,6 +8,7 @@ import org.lwjgl.*;
 
 import physics.Vector;
 
+import entities.Agent;
 import entities.Box;
 import entities.Snake;
 
@@ -25,6 +26,7 @@ public class SnakesOnA2DPlane {
 
 	Snake s;
 	ArrayList<Box> obstacles;
+	ArrayList<Agent> agents;
 	
 	private boolean isSomethingSelected = false;
 
@@ -68,13 +70,14 @@ public class SnakesOnA2DPlane {
 	}
 
 	private void setUpEntities() {
-		s = new Snake(100, 150, 50, 30, 90);
+		s = new Snake(100, 150, 20, 20, 90);
 
 		obstacles = new ArrayList<Box>();
 
 		Box a = new Box(200, 200, 100, 200);
 		obstacles.add(a);
-
+		
+		agents = new ArrayList<Agent>();
 	}
 
 	private long getTime() {
@@ -98,6 +101,10 @@ public class SnakesOnA2DPlane {
 		s.render();
 		for (Box box : obstacles) {
 			box.render();
+		}
+		
+		for (Agent agent : agents) {
+			agent.render();
 		}
 	}
 
@@ -135,11 +142,18 @@ public class SnakesOnA2DPlane {
 			{
 				switch (Keyboard.getEventKey()) {
 				case Keyboard.KEY_O:
-					Box d = new Box(r.nextInt(DISPLAY_WIDTH), r.nextInt(DISPLAY_HEIGHT), r.nextInt(100) + 50, r.nextInt(100) + 50);
-					obstacles.add(d);
+					Box b = new Box(r.nextInt(DISPLAY_WIDTH), r.nextInt(DISPLAY_HEIGHT), r.nextInt(100) + 50, r.nextInt(100) + 50);
+					obstacles.add(b);
+					break;
+				case Keyboard.KEY_C:
+					Agent a = new Agent(Mouse.getX(), DISPLAY_HEIGHT - Mouse.getY() - 1);
+					agents.add(a);
 					break;
 				case Keyboard.KEY_H:
 					s.toggleHeading();
+					break;
+				case Keyboard.KEY_P:
+					s.togglePieSlices();
 					break;
 				case Keyboard.KEY_R:
 					s.toggleRadar();
@@ -164,6 +178,10 @@ public class SnakesOnA2DPlane {
 			if (box.selected){
 				box.setLocation(Mouse.getX() - .5 * box.getWidth(), DISPLAY_HEIGHT - Mouse.getY() - 1 - .5 * box.getHeight());
 			}
+		}
+		
+		for (Agent agent : agents) {
+			s.seesAgent(agent);
 		}
 	}
 
