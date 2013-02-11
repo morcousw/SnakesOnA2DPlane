@@ -7,8 +7,8 @@ public interface MoveableEntity extends Entity {
 	public void setDX(double dx);
 	public void setDY(double dy);
 	public void setHeading(double heading);
-	public void increaseHeading(double heading);
-	public void decreaseHeading(double heading);
-	public void moveUp();
-	public void moveDown();
+	public void increaseHeading();
+	public void decreaseHeading();
+	public void moveUp(double minX, double maxX, double minY, double maxY);
+	public void moveDown(double minX, double maxX, double minY, double maxY);
 }

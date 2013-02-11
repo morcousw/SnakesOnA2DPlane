@@ -2,17 +2,18 @@ package entities;
 
 public abstract class AbstractMovableEntity extends AbstractEntity implements MoveableEntity {
 
-	protected double dx, dy;
+	protected double dx, dy, dh;
 	protected double heading;
 	
 	public AbstractMovableEntity(double x, double y, double width, double height) {
-		this(x, y, width, height, 90);
+		this(x, y, width, height, 0);
 	}
 	
 	public AbstractMovableEntity(double x, double y, double width, double height, double heading) {
 		super(x, y, width, height);
-		this.dx = 1;
-		this.dy = 1;
+		this.dx = 5;
+		this.dy = 5;
+		this.dh = 5;
 		this.heading = heading;
 	}
 
@@ -44,21 +45,31 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 		this.heading = heading;
 	}
 	
-	public void increaseHeading(double heading) {
-		this.heading += heading;
+	public void increaseHeading() {
+		this.heading += dh;
 	}
 	
-	public void decreaseHeading(double heading) {
-		this.heading -= heading;
+	public void decreaseHeading() {
+		this.heading -= dh;
 	}
 	
-	public void moveUp() {
+	public void moveUp(double minX, double maxX, double minY, double maxY) {
 		this.x += Math.cos(Math.toRadians(heading)) * dx;
 		this.y -= Math.sin(Math.toRadians(heading)) * dy;
+		
+		if (this.x < minX)
+			this.x = maxX;
+		else if (this.x > maxX)
+			this.x = minX;
+		
+		if (this.y < minY)
+			this.y = maxY;
+		else if (this.y > maxY)
+			this.y = minY;
 	}
 	
-	public void moveDown() {
-		this.x += Math.cos(Math.toRadians(heading)) * dx;
+	public void moveDown(double minX, double maxX, double minY, double maxY) {
+		this.x -= Math.cos(Math.toRadians(heading)) * dx;
 		this.y += Math.sin(Math.toRadians(heading)) * dy;
 	}
 }
