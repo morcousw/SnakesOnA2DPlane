@@ -8,6 +8,7 @@ import org.lwjgl.*;
 
 import physics.Vector;
 
+import entities.Box;
 import entities.Snake;
 
 import static org.lwjgl.opengl.GL11.*;

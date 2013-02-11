@@ -1,9 +1,8 @@
+package entities;
 import static org.lwjgl.opengl.GL11.*;
 
 import java.util.Random;
 
-import entities.AbstractEntity;
-import entities.AbstractMovableEntity;
 
 
 public class Box extends AbstractMovableEntity {
