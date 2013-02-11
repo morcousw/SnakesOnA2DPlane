@@ -182,6 +182,7 @@ public class SnakesOnA2DPlane {
 		
 		for (Agent agent : agents) {
 			s.seesAgent(agent);
+			s.adjacencySense(agent);
 		}
 	}
 

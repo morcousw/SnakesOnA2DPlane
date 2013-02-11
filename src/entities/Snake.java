@@ -149,9 +149,20 @@ public class Snake extends AbstractMovableEntity {
 
 			if ((relDegree <= heading + 45 && relDegree >= heading - 45) || (relDegree >= 315 && heading <= 45 - (360 - relDegree)))
 			{
-				System.out.println("Activated " + heading + " " + relDegree);
+				if (printPieSlices)
+					System.out.println("Activated " + ((heading + 720) % 360) + " " + relDegree);
 				return true;
 			}
+		}
+		return false;
+	}
+	
+	public boolean adjacencySense(Entity agent) {
+		double distance = Math.hypot(agent.getX() - x, y - agent.getY()) - width;
+		if (distance <= range) {
+			if (printRadar)
+				System.out.println("There is an agent " + distance + " units away from you.");
+			return true;
 		}
 		return false;
 	}
