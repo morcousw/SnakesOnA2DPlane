@@ -2,18 +2,20 @@ package entities;
 
 import static org.lwjgl.opengl.GL11.*;
 
+import java.util.ArrayList;
+
 import org.lwjgl.input.Keyboard;
 
 import physics.Vector;
+import snakesOnA2DPlane.SnakesOnA2DPlane;
 
 public class Snake extends AbstractMovableEntity {
 
-	private boolean printHeading = true;
-	private boolean printRadar = false;
-	private boolean printPieSlices = false;
-
 	private double range;
+	private double wallSensorRadius = 0;
 
+	private ArrayList<Vector> wallsInRange = new ArrayList<Vector>();
+	
 	public Snake(double x, double y, double width, double height, double heading) {
 		super(x, y, width, height, heading);
 		range = 50;
@@ -24,12 +26,13 @@ public class Snake extends AbstractMovableEntity {
 	}
 
 	public void render() {
-		glColor3f(0.1f, 0.2f, 0.3f);
+		glColor3f(0.1f, 0.2f, 0.9f);
 		glBegin(GL_TRIANGLE_FAN);
 		{
 			glVertex2d(x, y);
 			for (int j = 0; j <= 360; j++) {
-				glVertex2f((float) (x + Math.sin(j) * width), (float) (y + Math.cos(j) * height));
+				glVertex2f((float) (x + Math.sin(j) * width),
+						(float) (y + Math.cos(j) * height));
 			}
 			glEnd();
 		}
@@ -44,7 +47,7 @@ public class Snake extends AbstractMovableEntity {
 							* (height + range)));
 			glEnd();
 		}
-		
+
 		if (printRadar) {
 			int i;
 			int lineAmount = 100; // # of triangles used to draw circle
@@ -53,43 +56,50 @@ public class Snake extends AbstractMovableEntity {
 			glBegin(GL_LINE_LOOP);
 			for (i = 0; i <= lineAmount; i++) {
 				glVertex2f(
-						(float) (x + ((width + range) * Math.cos(i * twicePi / lineAmount))),
-						(float) (y + ((height + range) * Math.sin(i * twicePi / lineAmount))));
+						(float) (x + ((width + range) * Math.cos(i * twicePi
+								/ lineAmount))),
+						(float) (y + ((height + range) * Math.sin(i * twicePi
+								/ lineAmount))));
 			}
 			glEnd();
 		}
-		
+
 		if (printPieSlices) {
-	    	glColor3f(.2f, .7f,.2f);
-	        glLineWidth(1);
-	        glBegin(GL_LINES);
-	        glVertex2f((float)(x-Math.cos(Math.toRadians(heading-45)) * (width + range)), (float)(y+Math.sin(Math.toRadians(heading-45)) * (height + range)));
-	        glVertex2f((float)(x+Math.cos(Math.toRadians(heading-45)) * (width + range)), (float)(y-Math.sin(Math.toRadians(heading-45)) * (height + range)));
-	        glEnd();
-	        glLineWidth(1);
-	        glBegin(GL_LINES);
-	        glVertex2f((float)(x-Math.cos(Math.toRadians(heading+45)) * (width + range)), (float)(y+Math.sin(Math.toRadians(heading+45)) * (height + range)));
-	        glVertex2f((float)(x+Math.cos(Math.toRadians(heading+45)) * (width + range)), (float)(y-Math.sin(Math.toRadians(heading+45)) * (height + range)));
-	        glEnd();
+			glColor3f(.2f, .9f, .2f);
+			glLineWidth(1);
+			glBegin(GL_LINES);
+			glVertex2f((float) (x - Math.cos(Math.toRadians(heading - 45))
+					* (width + range)),
+					(float) (y + Math.sin(Math.toRadians(heading - 45))
+							* (height + range)));
+			glVertex2f((float) (x + Math.cos(Math.toRadians(heading - 45))
+					* (width + range)),
+					(float) (y - Math.sin(Math.toRadians(heading - 45))
+							* (height + range)));
+			glEnd();
+			glLineWidth(1);
+			glBegin(GL_LINES);
+			glVertex2f((float) (x - Math.cos(Math.toRadians(heading + 45))
+					* (width + range)),
+					(float) (y + Math.sin(Math.toRadians(heading + 45))
+							* (height + range)));
+			glVertex2f((float) (x + Math.cos(Math.toRadians(heading + 45))
+					* (width + range)),
+					(float) (y - Math.sin(Math.toRadians(heading + 45))
+							* (height + range)));
+			glEnd();
 		}
-
-		glColor3f(1.0f, 0f, 0f);
-		glBegin(GL_POINTS);
-		glVertex2d(x, y);
-		glEnd();
-	}
-
-	public void toggleHeading() {
-		printHeading = !printHeading;
-	}
-
-	public void toggleRadar() {
-		printRadar = !printRadar;
-	}
-	
-	public void togglePieSlices() {
-		printPieSlices = !printPieSlices;
-		printRadar = printPieSlices;
+		
+		if (printWallSensors) {
+			for (Vector v : wallsInRange)
+			{
+				glColor3f(1f, 0f, 1f);
+				glBegin(GL_LINES);
+				glVertex2d(x, y);
+				glVertex2d(v.getX(), v.getY());
+				glEnd();
+			}
+		}
 	}
 
 	public boolean intersects(Entity other) {
@@ -133,37 +143,140 @@ public class Snake extends AbstractMovableEntity {
 
 		return false;
 	}
-	
+
 	public boolean seesAgent(Entity agent) {
 		if (Math.hypot(agent.getX() - x, agent.getY() - y) < range + width) {
 			// System.out.println(Math.hypot(box.x-userx, box.y-usery));
 			double relDegree = 0;
 			if (agent.getX() - x > 0 && agent.getY() - y < 0)
-				relDegree = (-Math.toDegrees(Math.asin((agent.getY() - y) / Math.hypot(agent.getX() - x, agent.getY() - y))));
+				relDegree = (-Math.toDegrees(Math.asin((agent.getY() - y)
+						/ Math.hypot(agent.getX() - x, agent.getY() - y))));
 			else if (agent.getX() - x < 0 && agent.getY() - y < 0)
-				relDegree = (90 + (90 - (-Math.toDegrees(Math.asin((agent.getY() - y)/ Math.hypot(agent.getX() - x, agent.getY() - y))))));
+				relDegree = (90 + (90 - (-Math.toDegrees(Math.asin((agent
+						.getY() - y)
+						/ Math.hypot(agent.getX() - x, agent.getY() - y))))));
 			else if (agent.getX() - x < 0 && agent.getY() - y > 0)
-				relDegree = (180 + (Math.toDegrees(Math.asin((agent.getY() - y) / Math.hypot(agent.getX() - x, agent.getY() - y)))));
+				relDegree = (180 + (Math.toDegrees(Math.asin((agent.getY() - y)
+						/ Math.hypot(agent.getX() - x, agent.getY() - y)))));
 			else if (agent.getX() - x > 0 && agent.getY() - y > 0)
-				relDegree = (270 + (90 - (Math.toDegrees(Math.asin((agent.getY() - y) / Math.hypot(agent.getX() - x, agent.getY() - y))))));
+				relDegree = (270 + (90 - (Math.toDegrees(Math.asin((agent
+						.getY() - y)
+						/ Math.hypot(agent.getX() - x, agent.getY() - y))))));
 
-			if ((relDegree <= heading + 45 && relDegree >= heading - 45) || (relDegree >= 315 && heading <= 45 - (360 - relDegree)))
-			{
+			if ((relDegree <= heading + 45 && relDegree >= heading - 45)
+					|| (relDegree >= 315 && heading <= 45 - (360 - relDegree))) {
 				if (printPieSlices)
-					System.out.println("Activated " + ((heading + 720) % 360) + " " + relDegree);
+					System.out.println("Activated " + String.format("%.2f",((heading + 720) % 360))
+							+ " " + relDegree);
 				return true;
 			}
 		}
 		return false;
 	}
-	
+
 	public boolean adjacencySense(Entity agent) {
-		double distance = Math.hypot(agent.getX() - x, y - agent.getY()) - width;
+		double distance = Math.hypot(agent.getX() - x, y - agent.getY())
+				- width;
 		if (distance <= range) {
 			if (printRadar)
-				System.out.println("There is an agent " + distance + " units away from you.");
+				System.out.println("There is an agent " + distance
+						+ " units away from you.");
 			return true;
 		}
 		return false;
+	}
+
+	public void feelForWalls(Entity other) {
+		wallSensorRadius = width;
+		double coordsX, coordsY, a;
+		while (true) {
+			if (wallSensorRadius > SnakesOnA2DPlane.DISPLAY_WIDTH
+					&& wallSensorRadius > SnakesOnA2DPlane.DISPLAY_HEIGHT)
+				return;
+
+			// Circle colliding with the right side of the rectangle
+			a = Math.sqrt(Math.pow(wallSensorRadius, 2)
+					- Math.pow(other.getX() + other.getWidth() - x, 2))
+					+ y;
+			if (a <= other.getY() + other.getHeight() && a >= other.getY()
+					&& x - wallSensorRadius >= other.getX()
+					&& x - wallSensorRadius <= other.getX() + other.getWidth()) {
+				coordsX = other.getX() + other.getWidth();
+				coordsY = a;
+				break;
+			}
+
+			// Circle colliding with the left side of the rectangle
+			a = Math.sqrt(Math.pow(wallSensorRadius, 2)
+					- Math.pow(other.getX() - x, 2))
+					+ y;
+			if (a <= other.getY() + other.getHeight() && a >= other.getY()
+					&& x + wallSensorRadius >= other.getX()
+					&& x + wallSensorRadius <= other.getX() + other.getWidth()) {
+				coordsX = other.getX();
+				coordsY = a;
+				break;
+			}
+
+			// Circle colliding with the bottom side of the rectangle
+			a = Math.sqrt(Math.pow(wallSensorRadius, 2)
+					- Math.pow(other.getY() + other.getHeight() - y, 2))
+					+ x;
+			if (a <= other.getX() + other.getWidth() && a >= other.getX()
+					&& y - wallSensorRadius >= other.getY()
+					&& y - wallSensorRadius <= other.getY() + other.getHeight()) {
+				coordsX = a;
+				coordsY = other.getY() + other.getHeight();
+				break;
+			}
+
+			// Circle colliding with the top side of the rectangle
+			a = Math.sqrt(Math.pow(wallSensorRadius, 2)
+					- Math.pow(other.getY() - y, 2))
+					+ x;
+			if (a <= other.getX() + other.getWidth() && a >= other.getX()
+					&& y + wallSensorRadius >= other.getY()
+					&& y + wallSensorRadius <= other.getY() + other.getHeight()) {
+				coordsX = a;
+				coordsY = other.getY();
+				break;
+			}
+
+			wallSensorRadius++;
+		}
+
+		Vector v = new Vector(coordsX, coordsY);
+		wallsInRange.add(v);
+
+		
+		double relDegree = 0;
+		if (coordsX - x > 0 && coordsY - y < 0)
+			relDegree = (- Math.toDegrees(Math.asin((coordsY - y)
+					/ Math.hypot(coordsX - x, coordsY - y))));
+		else if (coordsX - x < 0 && coordsY - y < 0)
+			relDegree = (90 + (90 - (-Math.toDegrees(Math.asin((coordsY - y)
+					/ Math.hypot(coordsX - x, coordsY - y))))));
+		else if (coordsX - x < 0 && coordsY - y > 0)
+			relDegree = (180 + (Math.toDegrees(Math.asin((coordsY - y)
+					/ Math.hypot(coordsX - x, coordsY - y)))));
+		else if (coordsX - x > 0 && coordsY - y > 0)
+			relDegree = (270 + (90 - (Math.toDegrees(Math.asin((coordsY - y)
+					/ Math.hypot(coordsX - x, coordsY - y))))));
+		
+		relDegree = (360 + heading - relDegree) % 360;
+		String direction;
+		if (relDegree > 180)
+		{
+			direction = "counter-clockwise";
+			relDegree = 360 - relDegree;
+		}
+		else
+			direction = "clockwise";
+		relDegree = relDegree > 180 ? 360 - relDegree : relDegree;
+		System.out.println("Wall Intersection " + (wallSensorRadius - width - 1) + " units away. At a heading of " + String.format("%.2f", relDegree) + " degrees " + direction + ".");
+	}
+	
+	public void resetWallSensors() {
+		wallsInRange.clear();
 	}
 }

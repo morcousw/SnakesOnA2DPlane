@@ -1,3 +1,5 @@
+package snakesOnA2DPlane;
+
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -21,13 +23,13 @@ public class SnakesOnA2DPlane {
 	// Timing Variables
 	private long lastFrame;
 	private boolean isRunning = true;
-	
+
 	Random r = new Random();
 
 	Snake s;
 	ArrayList<Box> obstacles;
 	ArrayList<Agent> agents;
-	
+
 	private boolean isSomethingSelected = false;
 
 	public SnakesOnA2DPlane() {
@@ -76,7 +78,7 @@ public class SnakesOnA2DPlane {
 
 		Box a = new Box(200, 200, 100, 200);
 		obstacles.add(a);
-		
+
 		agents = new ArrayList<Agent>();
 	}
 
@@ -102,7 +104,7 @@ public class SnakesOnA2DPlane {
 		for (Box box : obstacles) {
 			box.render();
 		}
-		
+
 		for (Agent agent : agents) {
 			agent.render();
 		}
@@ -117,36 +119,35 @@ public class SnakesOnA2DPlane {
 	}
 
 	private void input() {
-		if (Keyboard.isKeyDown(Keyboard.KEY_UP))
-		{	
+		if (Keyboard.isKeyDown(Keyboard.KEY_UP)) {
 			s.moveUp(0, DISPLAY_WIDTH, 0, DISPLAY_HEIGHT);
 			for (Box box : obstacles)
 				if (s.intersects(box))
-						s.moveDown(0, DISPLAY_WIDTH, 0, DISPLAY_HEIGHT);
-		}
-		else if (Keyboard.isKeyDown(Keyboard.KEY_DOWN))
-		{
+					s.moveDown(0, DISPLAY_WIDTH, 0, DISPLAY_HEIGHT);
+		} else if (Keyboard.isKeyDown(Keyboard.KEY_DOWN)) {
 			s.moveDown(0, DISPLAY_WIDTH, 0, DISPLAY_HEIGHT);
 			for (Box box : obstacles)
 				if (s.intersects(box))
-						s.moveUp(0, DISPLAY_WIDTH, 0, DISPLAY_HEIGHT);
+					s.moveUp(0, DISPLAY_WIDTH, 0, DISPLAY_HEIGHT);
 		}
-		
+
 		if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT))
 			s.decreaseHeading();
 		else if (Keyboard.isKeyDown(Keyboard.KEY_LEFT))
 			s.increaseHeading();
-		
+
 		while (Keyboard.next()) {
-			if (Keyboard.getEventKeyState())
-			{
+			if (Keyboard.getEventKeyState()) {
 				switch (Keyboard.getEventKey()) {
 				case Keyboard.KEY_O:
-					Box b = new Box(r.nextInt(DISPLAY_WIDTH), r.nextInt(DISPLAY_HEIGHT), r.nextInt(100) + 50, r.nextInt(100) + 50);
+					Box b = new Box(r.nextInt(DISPLAY_WIDTH),
+							r.nextInt(DISPLAY_HEIGHT), r.nextInt(100) + 50,
+							r.nextInt(100) + 50);
 					obstacles.add(b);
 					break;
 				case Keyboard.KEY_C:
-					Agent a = new Agent(Mouse.getX(), DISPLAY_HEIGHT - Mouse.getY() - 1);
+					Agent a = new Agent(Mouse.getX(), DISPLAY_HEIGHT
+							- Mouse.getY() - 1);
 					agents.add(a);
 					break;
 				case Keyboard.KEY_H:
@@ -158,28 +159,41 @@ public class SnakesOnA2DPlane {
 				case Keyboard.KEY_R:
 					s.toggleRadar();
 					break;
+				case Keyboard.KEY_W:
+					if (s.isWallSensorActivated()) {
+						s.turnOffWallSensors();
+					} else {
+						s.turnOnWallSensors();
+
+						for (Box box : obstacles)
+							s.feelForWalls(box);
+					}
+					break;
 				}
 			}
 		}
-		
+
 		for (Box box : obstacles) {
 			if (Mouse.isButtonDown(0)
-					&& box.inBounds(Mouse.getX(), DISPLAY_HEIGHT - Mouse.getY() - 1)
-					&& !isSomethingSelected) {
+					&& box.inBounds(Mouse.getX(), DISPLAY_HEIGHT - Mouse.getY()
+							- 1) && !isSomethingSelected) {
 				isSomethingSelected = true;
 				box.selected = true;
-			} 
-			
+			}
+
 			if (Mouse.isButtonDown(1)) {
 				box.selected = false;
 				isSomethingSelected = false;
 			}
-			
-			if (box.selected){
-				box.setLocation(Mouse.getX() - .5 * box.getWidth(), DISPLAY_HEIGHT - Mouse.getY() - 1 - .5 * box.getHeight());
+
+			if (box.selected) {
+				box.setLocation(
+						Mouse.getX() - .5 * box.getWidth(),
+						DISPLAY_HEIGHT - Mouse.getY() - 1 - .5
+								* box.getHeight());
 			}
 		}
-		
+
 		for (Agent agent : agents) {
 			s.seesAgent(agent);
 			s.adjacencySense(agent);

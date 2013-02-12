@@ -28,4 +28,8 @@ public class Vector {
 	public float getMagnitude() {
 		return (float) Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
 	}
+	
+	public double relativeHeading(Vector v) {
+		return Math.toDegrees(Math.acos((x * v.x + y * v.y)/(getMagnitude() * v.getMagnitude())));
+	}
 }

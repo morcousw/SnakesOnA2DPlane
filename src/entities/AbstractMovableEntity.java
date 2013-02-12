@@ -5,6 +5,11 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 	protected double dx, dy, dh;
 	protected double heading;
 	
+	protected boolean printHeading = true;
+	protected boolean printRadar = false;
+	protected boolean printPieSlices = false;
+	protected boolean printWallSensors = false;
+	
 	public AbstractMovableEntity(double x, double y, double width, double height) {
 		this(x, y, width, height, 0);
 	}
@@ -19,6 +24,37 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 
 	public void update(int delta) {
 
+	}
+	
+	public void toggleHeading() {
+		printHeading = !printHeading;
+		System.out.println("Heading: " + heading);
+	}
+
+	public void toggleRadar() {
+		printRadar = !printRadar;
+	}
+	
+	public void togglePieSlices() {
+		printPieSlices = !printPieSlices;
+		printRadar = printPieSlices;
+	}
+	
+	public void turnOnWallSensors() {
+		printWallSensors = true;
+	}
+	
+	public boolean isWallSensorActivated() {
+		return printWallSensors;
+	}
+	
+	public void turnOffWallSensors() {
+		printWallSensors = false;
+		resetWallSensors();
+	}
+	
+	public void resetWallSensors() {
+		return;
 	}
 
 	public double getDX() {
@@ -47,10 +83,18 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 	
 	public void increaseHeading() {
 		this.heading += dh;
+		this.heading %= 360;
+		if (printHeading)
+			System.out.println("Heading: " + heading);
 	}
 	
 	public void decreaseHeading() {
 		this.heading -= dh;
+		while (this.heading < 0)
+			this.heading += 360;
+		
+		if (printHeading)
+			System.out.println("Heading: " + heading);
 	}
 	
 	public void moveUp(double minX, double maxX, double minY, double maxY) {
@@ -66,10 +110,16 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 			this.y = maxY;
 		else if (this.y > maxY)
 			this.y = minY;
+		
+		System.out.println("(x,y): (" + x + ", " + y + ")");
+		turnOffWallSensors();
 	}
 	
 	public void moveDown(double minX, double maxX, double minY, double maxY) {
 		this.x -= Math.cos(Math.toRadians(heading)) * dx;
 		this.y += Math.sin(Math.toRadians(heading)) * dy;
+		System.out.println("(x,y): (" + x + ", " + y + ")");
+		
+		turnOffWallSensors();
 	}
 }
