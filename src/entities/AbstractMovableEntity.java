@@ -118,6 +118,17 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 	public void moveDown(double minX, double maxX, double minY, double maxY) {
 		this.x -= Math.cos(Math.toRadians(heading)) * dx;
 		this.y += Math.sin(Math.toRadians(heading)) * dy;
+		
+		if (this.x < minX)
+			this.x = maxX;
+		else if (this.x > maxX)
+			this.x = minX;
+		
+		if (this.y < minY)
+			this.y = maxY;
+		else if (this.y > maxY)
+			this.y = minY;
+		
 		System.out.println("(x,y): (" + x + ", " + y + ")");
 		
 		turnOffWallSensors();
