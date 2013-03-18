@@ -29,6 +29,10 @@ public class Vector {
 		return (float) Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
 	}
 	
+	public float getHeading() {
+		return (float) Math.toDegrees(Math.atan(y/x));
+	}
+	
 	public double relativeHeading(Vector v) {
 		return Math.toDegrees(Math.acos((x * v.x + y * v.y)/(getMagnitude() * v.getMagnitude())));
 	}

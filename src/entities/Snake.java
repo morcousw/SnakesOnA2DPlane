@@ -4,6 +4,8 @@ import static org.lwjgl.opengl.GL11.*;
 
 import java.util.ArrayList;
 
+import map.MapNode;
+
 import org.lwjgl.input.Keyboard;
 
 import physics.Vector;
@@ -16,13 +18,53 @@ public class Snake extends AbstractMovableEntity {
 
 	private ArrayList<Vector> wallsInRange = new ArrayList<Vector>();
 	
+	private double seekTargetX;
+	private double seekTargetY;
+	private boolean isSeeking = false;
+	
+	//Path Following Variables
+	private boolean isFollowingPath = false;
+	private MapNode curNode;
+	
 	public Snake(double x, double y, double width, double height, double heading) {
 		super(x, y, width, height, heading);
 		range = 50;
 	}
 
 	public void update(int delta) {
-		super.update(delta);
+		if (isSeeking)
+		{
+			Vector desiredPos = new Vector(seekTargetX - this.x, seekTargetY - this.y);
+			this.x += (desiredPos.getX() / desiredPos.getMagnitude()) * this.dx;
+			this.y += (desiredPos.getY() / desiredPos.getMagnitude()) * this.dy;	
+			
+			//TODO: change the heading so that it matches the desiredPos
+			System.out.println("X: " + this.x + " " + seekTargetX);
+			System.out.println("Y: " + this.y + " " + seekTargetY);
+			if (Math.abs(this.x - seekTargetX) < this.dx && Math.abs(this.y - seekTargetY) < this.dy)
+				isSeeking = false;
+		} else if (isFollowingPath) {
+			Vector desiredPos = new Vector(curNode.getXCoord() - this.x, curNode.getYCoord() - this.y);
+			this.x += (desiredPos.getX() / desiredPos.getMagnitude()) * this.dx;
+			this.y += (desiredPos.getY() / desiredPos.getMagnitude()) * this.dy;	
+			
+			//TODO: change the heading so that it matches the desiredPos
+			System.out.println("X: " + this.x + " " + curNode.getXCoord());
+			System.out.println("Y: " + this.y + " " + curNode.getYCoord());
+			if (Math.abs(this.x - curNode.getXCoord()) < this.dx && Math.abs(this.y - curNode.getYCoord()) < this.dy)
+			{
+				if (curNode.finalChild == null)
+				{
+					//We are at the target node. Stop.
+					isFollowingPath = false;
+					isSeeking = true;
+				}
+				else
+					curNode = curNode.finalChild;
+			}
+		} else {
+			super.update(delta);
+		}
 	}
 
 	public void render() {
@@ -278,5 +320,20 @@ public class Snake extends AbstractMovableEntity {
 	
 	public void resetWallSensors() {
 		wallsInRange.clear();
+	}
+	
+	public void seek(double targetX, double targetY)
+	{
+		isSeeking = true;
+		seekTargetX = targetX;
+		seekTargetY = targetY;
+	}
+	
+	public void followPathToTarget(MapNode startingPoint, double targetX, double targetY)
+	{
+		this.isFollowingPath = true;
+		this.curNode = startingPoint;
+		seekTargetX = targetX;
+		seekTargetY = targetY;
 	}
 }
