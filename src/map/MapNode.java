@@ -1,5 +1,6 @@
 package map;
 
+import physics.Vector;
 import snakesOnA2DPlane.SnakesOnA2DPlane;
 
 public class MapNode {
@@ -30,7 +31,7 @@ public class MapNode {
 	}
 	
 	public int calculateH(int targetX, int targetY) {
-		return Math.abs(targetX - this.x) + Math.abs(targetY - this.y);
+		return (int)Vector.distanceFormula(targetX, targetY, this.x, this.y);//Math.abs(targetX - this.x) + Math.abs(targetY - this.y);
 	}
 	
 	public void setValues (int f, int g, int h) {
@@ -40,11 +41,13 @@ public class MapNode {
 	}
 	
 	public double getXCoord() {
-		return x * SnakesOnA2DPlane.GRID_UNIT_DIM;
+		//.5 added so that the snake follows the middle of the square, not the edge.
+		return (x + .5) * SnakesOnA2DPlane.GRID_UNIT_DIM;
 	}
 	
 	public double getYCoord() {
-		return y * SnakesOnA2DPlane.GRID_UNIT_DIM;
+		//.5 added so that the snake follows the middle of the square, not the edge.
+		return (y + .5) * SnakesOnA2DPlane.GRID_UNIT_DIM;
 	}
 	
 	public String toString() {

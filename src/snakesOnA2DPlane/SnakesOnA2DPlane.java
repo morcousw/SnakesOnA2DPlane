@@ -16,20 +16,23 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.*;
 import org.lwjgl.*;
 
+import physics.StopWatch;
 import physics.Vector;
 
 import entities.AbstractEntity;
 import entities.Agent;
 import entities.Box;
-import entities.Snake;
+import entities.SnakeBody;
+import entities.SnakeHead;
+import entities.Agent.AgentType;
 
 import static org.lwjgl.opengl.GL11.*;
 
 public class SnakesOnA2DPlane {
-	public static final int DISPLAY_HEIGHT = 480;
-	public static final int DISPLAY_WIDTH = 640;
+	public static final int DISPLAY_HEIGHT = 760;
+	public static final int DISPLAY_WIDTH = 1420;
 
-	public static final int GRID_UNIT_DIM = 20;
+	public static final int GRID_UNIT_DIM = 15;
 
 	// Timing Variables
 	private long lastFrame;
@@ -40,7 +43,7 @@ public class SnakesOnA2DPlane {
 	
 	Random r = new Random();
 
-	Snake s;
+	SnakeHead s;
 	ArrayList<Box> obstacles;
 	ArrayList<Agent> agents;
 
@@ -56,6 +59,8 @@ public class SnakesOnA2DPlane {
 	ArrayList<MapNode> closedList = new ArrayList<MapNode>();
 	boolean isPathGenerated = false;
 
+	StopWatch sw = new StopWatch();
+	
 	public SnakesOnA2DPlane() {
 		setUpDisplay();
 		setUpOpenGL();
@@ -86,8 +91,9 @@ public class SnakesOnA2DPlane {
 		try {
 			Display.setDisplayMode(new DisplayMode(DISPLAY_WIDTH,
 					DISPLAY_HEIGHT));
+			Display.setFullscreen(true);
 			Display.setTitle("Snakes On a 2D Plane");
-			Display.setResizable(true);
+			Display.setResizable(false);
 			Display.create();
 		} catch (LWJGLException e) {
 			e.printStackTrace();
@@ -104,7 +110,7 @@ public class SnakesOnA2DPlane {
 	}
 
 	private void setUpEntities() {
-		s = new Snake(100, 150, 20, 20, 90);
+		s = new SnakeHead(100, 150, 10, 10, 90);
 
 		obstacles = new ArrayList<Box>();
 
@@ -196,17 +202,64 @@ public class SnakesOnA2DPlane {
 	private void update(int delta) {
 		// Call update function for each object here
 		s.update(delta);
+		
 		for (Box box : obstacles) {
 			box.update(delta);
 		}
 		
-		performAStar();
+		for (Agent a : agents) 
+		{
+			if (s.isEatCookie(a))
+			{
+				if (a.getType() == AgentType.ADD_ONE_PART) {
+					s.numParts++;
+					s.addPart();
+					System.out.println("You ate a cookie! Now your length is: " + s.numParts + " parts.");
+				}
+				else if (a.getType() == AgentType.ADD_TWO_PARTS) {
+					s.numParts += 2;
+					s.addPart();
+					System.out.println("You ate a cookie! Now your length is: " + s.numParts + " parts.");
+				}
+				else if (a.getType() == AgentType.GO_FASTER){
+					s.speedUp();
+					System.out.println("GO GO GO !");
+				} else if (a.getType() == AgentType.GO_SLOWER) {
+					s.slowDown();
+					System.out.println("Slow down tiger...");
+				}
+				
+				agents.remove(a);
+				
+				//Break out of loop to avoid co-modification
+				break;
+			}
+		}
+		
+		if(isSearching)
+		{
+			boolean doneWithAStar = false;
+			
+			while(!doneWithAStar)
+				doneWithAStar = performAStar();
+			
+		}
+		
+		SnakeBody b = s.checkForSelfCollision();
+		if (b != null)
+		{
+			System.out.println("CRASH!");
+			s.removePart(b);
+		}
 	}
 	
-	public void performAStar() {
+	public boolean performAStar() {
 		if (isSearching) {
 			if (openList.size() == 0)
+			{
+				sw.start();
 				openList.add(startingPoint);
+			}
 			
 			//Select current node	
 			MapNode curNode = null;
@@ -223,13 +276,15 @@ public class SnakesOnA2DPlane {
 			
 			openList.remove(curNode);
 			closedList.add(curNode);
-
+			
 			//Assign adjacent nodes
 			out.println(curNode.toString());
 			if (curNode != targetPoint)
 			{
+				
 				for (MapNode m : getAdjacentNodes(curNode))
 				{
+					
 					out.println("\t" + m.toString());
 					
 					if (m.isWalkable && !closedList.contains(m))
@@ -253,15 +308,21 @@ public class SnakesOnA2DPlane {
 							}
 						}
 					}
+					
 				}
 			}
 			
 			if (closedList.contains(targetPoint) || openList.size() == 0)
 			{
 				isSearching = false;
-				generatePath();
+				generatePath();				
+				sw.stop();
+				System.out.println("Elapsed map node: " + sw.getElapsedTime());
+				return true;
 			}
+			
 		}
+		return false;
 	}
 
 	public void generatePath() {

@@ -2,7 +2,7 @@ package entities;
 
 public abstract class AbstractMovableEntity extends AbstractEntity implements MoveableEntity {
 
-	protected double dx, dy, dh;
+	protected double dx, dy, dh, maxDX, maxDY;
 	protected double heading;
 	
 	protected boolean printHeading = true;
@@ -19,6 +19,8 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 		this.dx = 5;
 		this.dy = 5;
 		this.dh = 5;
+		this.maxDX = 8;
+		this.maxDY = 8;
 		this.heading = heading;
 	}
 
@@ -70,11 +72,17 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 	}
 
 	public void setDX(double dx) {
-		this.dx = dx;
+		if (dx > maxDX)
+			this.dx = maxDX;
+		else
+			this.dx = Math.abs(dx);
 	}
 
 	public void setDY(double dy) {
-		this.dy = dy;
+		if (dy > maxDY)
+			this.dy = maxDY;
+		else
+			this.dy = Math.abs(dy);
 	}
 	
 	public void setHeading(double heading) {
@@ -85,7 +93,7 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 		this.heading += dh;
 		this.heading %= 360;
 		if (printHeading)
-			System.out.println("Heading: " + heading);
+			;//System.out.println("Heading: " + heading);
 	}
 	
 	public void decreaseHeading() {
@@ -94,7 +102,7 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 			this.heading += 360;
 		
 		if (printHeading)
-			System.out.println("Heading: " + heading);
+			;//System.out.println("Heading: " + heading);
 	}
 	
 	public void moveUp(double minX, double maxX, double minY, double maxY) {
@@ -111,7 +119,7 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 		else if (this.y > maxY)
 			this.y = minY;
 		
-		System.out.println("(x,y): (" + x + ", " + y + ")");
+		//System.out.println("(x,y): (" + x + ", " + y + ")");
 		turnOffWallSensors();
 	}
 	
@@ -129,7 +137,7 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 		else if (this.y > maxY)
 			this.y = minY;
 		
-		System.out.println("(x,y): (" + x + ", " + y + ")");
+		//System.out.println("(x,y): (" + x + ", " + y + ")");
 		
 		turnOffWallSensors();
 	}

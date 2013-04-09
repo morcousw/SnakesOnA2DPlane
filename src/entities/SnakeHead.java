@@ -11,13 +11,13 @@ import org.lwjgl.input.Keyboard;
 import physics.Vector;
 import snakesOnA2DPlane.SnakesOnA2DPlane;
 
-public class Snake extends AbstractMovableEntity {
+public class SnakeHead extends AbstractMovableEntity {
 
 	private double range;
 	private double wallSensorRadius = 0;
 
 	private ArrayList<Vector> wallsInRange = new ArrayList<Vector>();
-	
+	private ArrayList<SnakeBody> bodyParts = new ArrayList<SnakeBody>();
 	private double seekTargetX;
 	private double seekTargetY;
 	private boolean isSeeking = false;
@@ -26,12 +26,18 @@ public class Snake extends AbstractMovableEntity {
 	private boolean isFollowingPath = false;
 	private MapNode curNode;
 	
-	public Snake(double x, double y, double width, double height, double heading) {
+	public int numParts = 1;
+	
+	public SnakeHead(double x, double y, double width, double height, double heading) {
 		super(x, y, width, height, heading);
-		range = 50;
+		range = width*2;
 	}
 
 	public void update(int delta) {
+		adjustParts();
+		for (SnakeBody s : bodyParts)
+			s.update(delta);
+		
 		if (isSeeking)
 		{
 			Vector desiredPos = new Vector(seekTargetX - this.x, seekTargetY - this.y);
@@ -43,6 +49,7 @@ public class Snake extends AbstractMovableEntity {
 			System.out.println("Y: " + this.y + " " + seekTargetY);
 			if (Math.abs(this.x - seekTargetX) < this.dx && Math.abs(this.y - seekTargetY) < this.dy)
 				isSeeking = false;
+			
 		} else if (isFollowingPath) {
 			Vector desiredPos = new Vector(curNode.getXCoord() - this.x, curNode.getYCoord() - this.y);
 			this.x += (desiredPos.getX() / desiredPos.getMagnitude()) * this.dx;
@@ -68,6 +75,9 @@ public class Snake extends AbstractMovableEntity {
 	}
 
 	public void render() {
+		for (SnakeBody s : bodyParts)
+			s.render();
+		
 		glColor3f(0.1f, 0.2f, 0.9f);
 		glBegin(GL_TRIANGLE_FAN);
 		{
@@ -182,7 +192,7 @@ public class Snake extends AbstractMovableEntity {
 		if (x > other.getX() && x < other.getX() + other.getWidth()
 				&& y > other.getY() && y < other.getY() + other.getHeight())
 			return true;
-
+		
 		return false;
 	}
 
@@ -335,5 +345,74 @@ public class Snake extends AbstractMovableEntity {
 		this.curNode = startingPoint;
 		seekTargetX = targetX;
 		seekTargetY = targetY;
+	}
+	
+	public boolean isEatCookie(Agent agent) {
+		if (Vector.distanceFormula(this.x, this.y, agent.x, agent.y) < agent.height + this.height)
+			return true;
+		
+		return false;
+	}
+	
+	public void addPart() {
+		AbstractMovableEntity a;
+		if (bodyParts.isEmpty())
+			a = this;
+		else
+			a = bodyParts.get(bodyParts.size() - 1);
+		
+		SnakeBody b = new SnakeBody(a.x, a.y, a.width, a.height, a);
+		bodyParts.add(b);
+	}
+	
+	private void adjustParts() {
+		for (SnakeBody s: bodyParts)
+		{
+			s.setDX(this.getDX());
+			s.setDY(this.getDY());
+		}
+		
+	}
+	
+	public void speedUp() {
+		this.setDX(this.getDX() + 2);
+		this.setDY(this.getDY() + 2);
+		
+		for (SnakeBody s : bodyParts)
+		{
+			s.setDX(this.getDX());
+			s.setDY(this.getDY());
+		}
+	}
+	
+	public void slowDown() {
+		this.setDX(this.getDX() - 2);
+		this.setDY(this.getDY() - 2);
+		
+		for (SnakeBody s : bodyParts)
+		{
+			s.setDX(this.getDX());
+			s.setDY(this.getDY());
+		}
+	}
+	
+	public SnakeBody checkForSelfCollision() {
+		for (SnakeBody s : bodyParts)
+		{
+			if (Vector.distanceFormula(s.getX(), s.getY(), this.getX(), this.getY()) <= s.getWidth() + this.getWidth() && s.parent != this)
+				return s;
+		}
+		
+		return null;
+	}
+	
+	public void removePart(SnakeBody b) {
+		int i = bodyParts.size() - 1;
+		while (bodyParts.get(i) != b)
+		{
+			bodyParts.remove(i);
+			i--;
+		}
+		//bodyParts.remove(b);
 	}
 }
