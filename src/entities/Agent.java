@@ -12,7 +12,7 @@ import java.util.Random;
 public class Agent extends AbstractEntity {
 	
 	public enum AgentType {
-		GO_FASTER, GO_SLOWER, ADD_ONE_PART, ADD_TWO_PARTS
+		GO_FASTER, GO_SLOWER, ADD_ONE_PART, ADD_TWO_PARTS, CUT_IN_HALF, DROP_OBSTACLE
 	};
 	
 	
@@ -40,6 +40,13 @@ public class Agent extends AbstractEntity {
 				break;
 			case GO_SLOWER:
 				glColor3f(1.0f, 0f, 0f);
+				break;
+			case CUT_IN_HALF:
+				glColor3f(1.0f, 0f, 1.0f);
+				break;
+			case DROP_OBSTACLE:
+				glColor3f(1.0f, 1.0f, 0f);
+				break;
 		}
 		
         glBegin(GL_TRIANGLE_FAN);

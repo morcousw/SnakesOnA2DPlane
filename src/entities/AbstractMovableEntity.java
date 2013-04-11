@@ -2,7 +2,7 @@ package entities;
 
 public abstract class AbstractMovableEntity extends AbstractEntity implements MoveableEntity {
 
-	protected double dx, dy, dh, maxDX, maxDY;
+	protected double dx, dy, dh, maxDX, maxDY, maxDH;
 	protected double heading;
 	
 	protected boolean printHeading = true;
@@ -21,6 +21,7 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 		this.dh = 5;
 		this.maxDX = 8;
 		this.maxDY = 8;
+		this.maxDH = 8;
 		this.heading = heading;
 	}
 
@@ -67,6 +68,10 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 		return dy;
 	}
 	
+	public double getDH() {
+		return dh;
+	}
+	
 	public double getHeading() {
 		return heading;
 	}
@@ -74,6 +79,8 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 	public void setDX(double dx) {
 		if (dx > maxDX)
 			this.dx = maxDX;
+		else if (dx == 0)
+			this.dx = 1;
 		else
 			this.dx = Math.abs(dx);
 	}
@@ -81,8 +88,18 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 	public void setDY(double dy) {
 		if (dy > maxDY)
 			this.dy = maxDY;
+		else if (dy == 0)
+			this.dy = 1;
+		else this.dy = Math.abs(dy);
+	}
+	
+	public void setDH(double dh) {
+		if (dh > maxDH)
+			this.dh = maxDH;
+		else if (dy == 0)
+			this.dh = 1;
 		else
-			this.dy = Math.abs(dy);
+			this.dh = Math.abs(dh);
 	}
 	
 	public void setHeading(double heading) {
@@ -140,5 +157,47 @@ public abstract class AbstractMovableEntity extends AbstractEntity implements Mo
 		//System.out.println("(x,y): (" + x + ", " + y + ")");
 		
 		turnOffWallSensors();
+	}
+	
+	public boolean intersects(Entity other) {
+		double a;
+		// Circle colliding with the right side of the rectangle
+		a = Math.sqrt(Math.pow(width, 2)
+				- Math.pow(other.getX() + other.getWidth() - x, 2))
+				+ y;
+		if (a <= other.getY() + other.getHeight() && a >= other.getY()
+				&& x - width >= other.getX()
+				&& x - width <= other.getX() + other.getWidth())
+			return true;
+
+		// Circle colliding with the left side of the rectangle
+		a = Math.sqrt(Math.pow(width, 2) - Math.pow(other.getX() - x, 2)) + y;
+		if (a <= other.getY() + other.getHeight() && a >= other.getY()
+				&& x + width >= other.getX()
+				&& x + width <= other.getX() + other.getWidth())
+			return true;
+
+		// Circle colliding with the bottom side of the rectangle
+		a = Math.sqrt(Math.pow(height, 2)
+				- Math.pow(other.getY() + other.getHeight() - y, 2))
+				+ x;
+		if (a <= other.getX() + other.getWidth() && a >= other.getX()
+				&& y - height >= other.getY()
+				&& y - height <= other.getY() + other.getHeight())
+			return true;
+
+		// Circle colliding with the top side of the rectangle
+		a = Math.sqrt(Math.pow(height, 2) - Math.pow(other.getY() - y, 2)) + x;
+		if (a <= other.getX() + other.getWidth() && a >= other.getX()
+				&& y + height >= other.getY()
+				&& y + height <= other.getY() + other.getHeight())
+			return true;
+
+		// If the center of the circle is within the bounds of the rectangle
+		if (x > other.getX() && x < other.getX() + other.getWidth()
+				&& y > other.getY() && y < other.getY() + other.getHeight())
+			return true;
+		
+		return false;
 	}
 }

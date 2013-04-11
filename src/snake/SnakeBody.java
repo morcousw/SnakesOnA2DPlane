@@ -1,6 +1,7 @@
-package entities;
+package snake;
 import static org.lwjgl.opengl.GL11.*;
 import physics.Vector;
+import entities.AbstractMovableEntity;
 
 public class SnakeBody extends AbstractMovableEntity{
 	
